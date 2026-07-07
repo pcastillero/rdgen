@@ -76,16 +76,32 @@ jobs:
           shell: pwsh
           command: |
             cd RustDeskTempTopMostWindow && git checkout 53b548a5398624f7149a382000397993542ad796
-            if ($env:privacylink_url-ne "false") {
+            if ($env:privacylink_url -ne "false") {
               if ($env:privacy_png_base64) {
-                [IO.File]::WriteAllBytes("privacy.png", [Convert]::FromBase64String($env:privacy_png_base64))
+                @'
+import base64
+import os
+
+data = base64.b64decode(os.environ["privacy_png_base64"])
+with open("./WindowInjection/img.cpp", "w") as f:
+    f.write('#include "pch.h"\n')
+    f.write('#include "./img.h"\n\n')
+    f.write('const unsigned char g_img[] = {\n')
+    for i in range(0, len(data), 20):
+        chunk = data[i:i+20]
+        line = ", ".join(f"0x{b:02x}" for b in chunk)
+        f.write(line + (",\n" if i + 20 < len(data) else "\n"))
+    f.write('};\n\n')
+    f.write('const long long g_imgLen = sizeof(g_img);\n')
+'@ | Out-File -Encoding utf8 make_privacy_img.py
+                python make_privacy_img.py
               } else {
                 Invoke-WebRequest -Uri ${{ env.privacylink_url }}/get_png?filename=${{ env.privacylink_file }}"&"uuid=${{ env.privacylink_uuid }} -OutFile privacy.png
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/privacyScreen.py -OutFile privacyScreen.py
+                python privacyScreen.py
+                rm ./WindowInjection/img.cpp
+                mv img.cpp ./WindowInjection/img.cpp
               }
-              Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/privacyScreen.py -OutFile privacyScreen.py
-              python privacyScreen.py
-              rm ./WindowInjection/img.cpp
-              mv img.cpp ./WindowInjection/img.cpp
             }
             msbuild ${{ env.project_path }} -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.platform }} /p:TargetVersion=${{ inputs.target_version }}
 
