@@ -13,6 +13,11 @@ on:
         required: true
         default: ''
         type: string
+      zip_base64:
+        description: 'base64 encoded encrypted zip of json'
+        required: false
+        default: ''
+        type: string
 
 
 env:
@@ -46,6 +51,7 @@ jobs:
     uses: ./.github/workflows/fetch-encrypted-secrets.yml
     with:
       zip_url_json: ${{ inputs.zip_url }}
+      zip_base64: ${{ inputs.zip_base64 }}
 
   generate-bridge:
     uses: ./.github/workflows/bridge.yml
