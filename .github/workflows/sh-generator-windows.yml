@@ -466,6 +466,19 @@ jobs:
           flutter pub run flutter_launcher_icons
           cd ..
 
+      - name: Install RustDesk native dependencies
+        shell: powershell
+        run: |
+          rustup component add rustfmt --toolchain 1.75-x86_64-pc-windows-msvc
+          if (-not $env:VCPKG_ROOT) {
+            $env:VCPKG_ROOT = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\vcpkg"
+          }
+          $vcpkg = Join-Path $env:VCPKG_ROOT "vcpkg.exe"
+          if (-not (Test-Path $vcpkg)) {
+            throw "vcpkg.exe not found at $vcpkg"
+          }
+          & $vcpkg install opus:${{ matrix.job.vcpkg-triplet }} libvpx:${{ matrix.job.vcpkg-triplet }} ffmpeg:${{ matrix.job.vcpkg-triplet }}
+
       - name: Build rustdesk
         run: |
           # Windows: build RustDesk
