@@ -221,6 +221,23 @@ jobs:
             [[ "3.24.5" == "${{ env.FLUTTER_VERSION }}" ]] && git apply flutter_3.24.4_dropdown_menu_enableFilter.diff || true
           fi
 
+      - name: Install 7-Zip on Windows
+        shell: powershell
+        run: |
+          if (-not (Get-Command 7z -ErrorAction SilentlyContinue)) {
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+              winget install --id 7zip.7zip --exact --silent --accept-package-agreements --accept-source-agreements
+            } else {
+              throw "7-Zip is not installed and winget is not available on this runner."
+            }
+          }
+          $sevenZip = "${env:ProgramFiles}\7-Zip"
+          if (Test-Path $sevenZip) {
+            $sevenZip | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+            $env:Path = "$sevenZip;$env:Path"
+          }
+          7z
+
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
