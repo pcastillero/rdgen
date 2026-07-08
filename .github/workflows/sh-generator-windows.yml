@@ -159,6 +159,23 @@ jobs:
         uses: NuGet/setup-nuget@v2
         with:
           nuget-version: 'latest'
+
+      - name: Install ImageMagick on Windows
+        shell: powershell
+        run: |
+          $magick = Get-Command magick -ErrorAction SilentlyContinue
+          if (-not $magick) {
+            if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+              throw "ImageMagick is not installed and Chocolatey is not available on this runner."
+            }
+            choco install -y imagemagick.app --no-progress
+          }
+          $installDirs = Get-ChildItem -Path "${env:ProgramFiles}" -Directory -Filter "ImageMagick*" -ErrorAction SilentlyContinue
+          foreach ($dir in $installDirs) {
+            $dir.FullName | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+            $env:Path = "$($dir.FullName);$env:Path"
+          }
+          magick -version
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
