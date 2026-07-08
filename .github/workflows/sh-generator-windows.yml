@@ -493,9 +493,18 @@ jobs:
           $manifest.dependencies = $deps
           $manifest | ConvertTo-Json -Depth 20 | Set-Content .\vcpkg.json -Encoding utf8
           Remove-Item -Path .\vcpkg_installed -Recurse -Force -ErrorAction SilentlyContinue
-          Push-Location $env:TEMP
-          & $vcpkg install opus:${{ matrix.job.vcpkg-triplet }} libvpx:${{ matrix.job.vcpkg-triplet }} ffmpeg:${{ matrix.job.vcpkg-triplet }}
+          $depRoot = Join-Path $env:TEMP "rdgen-vcpkg-native-deps"
+          Remove-Item -Path $depRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $depRoot | Out-Null
+          @{
+            dependencies = @("opus", "libvpx", "ffmpeg")
+          } | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $depRoot "vcpkg.json") -Encoding utf8
+          Push-Location $depRoot
+          & $vcpkg install --triplet ${{ matrix.job.vcpkg-triplet }}
           Pop-Location
+          $targetInstalled = Join-Path $env:VCPKG_ROOT "installed\${{ matrix.job.vcpkg-triplet }}"
+          New-Item -ItemType Directory -Path $targetInstalled -Force | Out-Null
+          Copy-Item -Path (Join-Path $depRoot "vcpkg_installed\${{ matrix.job.vcpkg-triplet }}\*") -Destination $targetInstalled -Recurse -Force
           Get-Content .\vcpkg.json
 
       - name: Build rustdesk
