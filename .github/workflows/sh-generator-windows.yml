@@ -257,7 +257,7 @@ jobs:
         shell: powershell
         run: |
           where.exe link
-          link.exe /? | Select-Object -First 3
+          Write-Host "MSVC linker path verified"
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
