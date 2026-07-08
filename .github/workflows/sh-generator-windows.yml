@@ -544,6 +544,16 @@ jobs:
         run: |
           mv ./SignOutput/rustdesk.msi "./SignOutput/${{ env.filename }}.msi" || echo "rustdesk"
 
+      - name: upload generated clients
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generated-clients-${{ env.uuid }}
+          path: |
+            ./SignOutput/*.exe
+            ./SignOutput/*.msi
+          if-no-files-found: warn
+
       - name: send file to rdgen server
         if: ${{ env.rdgen == 'true' }}
         uses: nick-fields/retry@v3
