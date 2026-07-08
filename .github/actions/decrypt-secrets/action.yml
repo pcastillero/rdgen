@@ -22,6 +22,8 @@ runs:
         import pyzipper
         import json
         import os
+        import base64
+        import tempfile
 
         with pyzipper.AESZipFile('${{ inputs.zip_path }}') as zf:
             zf.setpassword('${{ inputs.zip_password }}'.encode())
@@ -31,6 +33,12 @@ runs:
         with open(os.environ['GITHUB_ENV'], 'a') as env_file:
             for key, value in secrets.items():
                 if value:
+                    if key in ("icon_png_base64", "logo_png_base64", "privacy_png_base64"):
+                        out_path = os.path.join(tempfile.gettempdir(), f"{key}.png")
+                        with open(out_path, "wb") as image_file:
+                            image_file.write(base64.b64decode(value))
+                        env_file.write(f"{key.replace('_base64', '_file')}={out_path}\n")
+                        continue
                     print(f"::add-mask::{value}")
                     env_file.write(f"{key}={value}\n")
         
