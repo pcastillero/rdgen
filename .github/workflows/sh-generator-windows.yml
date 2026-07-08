@@ -165,12 +165,18 @@ jobs:
         run: |
           $magick = Get-Command magick -ErrorAction SilentlyContinue
           if (-not $magick) {
-            if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-              throw "ImageMagick is not installed and Chocolatey is not available on this runner."
+            if (Get-Command choco -ErrorAction SilentlyContinue) {
+              choco install -y imagemagick.app --no-progress
+            } elseif (Get-Command winget -ErrorAction SilentlyContinue) {
+              winget install --id ImageMagick.ImageMagick --exact --silent --accept-package-agreements --accept-source-agreements
+            } else {
+              throw "ImageMagick is not installed and neither Chocolatey nor winget is available on this runner."
             }
-            choco install -y imagemagick.app --no-progress
           }
-          $installDirs = Get-ChildItem -Path "${env:ProgramFiles}" -Directory -Filter "ImageMagick*" -ErrorAction SilentlyContinue
+          $installRoots = @("${env:ProgramFiles}", "${env:ProgramFiles(x86)}") | Where-Object { $_ -and (Test-Path $_) }
+          $installDirs = foreach ($root in $installRoots) {
+            Get-ChildItem -Path $root -Directory -Filter "ImageMagick*" -ErrorAction SilentlyContinue
+          }
           foreach ($dir in $installDirs) {
             $dir.FullName | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
             $env:Path = "$($dir.FullName);$env:Path"
