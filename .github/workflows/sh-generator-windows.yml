@@ -493,6 +493,9 @@ jobs:
           $manifest.dependencies = $deps
           $manifest | ConvertTo-Json -Depth 20 | Set-Content .\vcpkg.json -Encoding utf8
           Remove-Item -Path .\vcpkg_installed -Recurse -Force -ErrorAction SilentlyContinue
+          Push-Location $env:TEMP
+          & $vcpkg install opus:${{ matrix.job.vcpkg-triplet }} libvpx:${{ matrix.job.vcpkg-triplet }} ffmpeg:${{ matrix.job.vcpkg-triplet }}
+          Pop-Location
           Get-Content .\vcpkg.json
 
       - name: Build rustdesk
