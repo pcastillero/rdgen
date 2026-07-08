@@ -283,10 +283,15 @@ jobs:
           sed -i -e 's|"RustDesk"|"${{ env.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
           # change powered by rustdek to powered by compname
+          shopt -s nullglob
           if [ ! -z "${{ env.compname }}" ]; then
-            find ./src/lang -name "*.rs" -exec sed -i '/powered_by_me/s|RustDesk|${{ env.compname }}|g' {} \;
+            for f in ./src/lang/*.rs; do
+              sed -i '/powered_by_me/s|RustDesk|${{ env.compname }}|g' "$f"
+            done
           fi
-          find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ env.appname }}|' {} \;
+          for f in ./src/lang/*.rs; do
+            sed -i -e 's|RustDesk|${{ env.appname }}|' "$f"
+          done
           sed -i -e 's|RustDesk|${{ env.appname }}|' ./res/msi/Package/License.rtf
 
       - name: fix registry if appname has a space
