@@ -182,6 +182,32 @@ jobs:
             $env:Path = "$($dir.FullName);$env:Path"
           }
           magick -version
+
+      - name: Install flutter
+        uses: subosito/flutter-action@v2.12.0
+        with:
+          channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Replace engine with rustdesk custom flutter engine
+        shell: powershell
+        run: |
+          flutter doctor -v
+          flutter precache --windows
+          Invoke-WebRequest -Uri https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip -OutFile windows-x64-release.zip
+          Expand-Archive -Path windows-x64-release.zip -DestinationPath windows-x64-release -Force
+          Copy-Item -Path windows-x64-release\* -Destination "$env:FLUTTER_ROOT\bin\cache\artifacts\engine\windows-x64-release\" -Recurse -Force
+
+      - name: Patch flutter
+        shell: bash
+        run: |
+          patch_file=".github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff"
+          if [ -f "$patch_file" ]; then
+            flutter_root="$(dirname "$(dirname "$(which flutter)")")"
+            cp "$patch_file" "$flutter_root/"
+            cd "$flutter_root"
+            [[ "3.24.5" == "${{ env.FLUTTER_VERSION }}" ]] && git apply flutter_3.24.4_dropdown_menu_enableFilter.diff || true
+          fi
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
