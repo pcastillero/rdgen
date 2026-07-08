@@ -479,7 +479,7 @@ jobs:
           }
           $manifest = Get-Content .\vcpkg.json -Raw | ConvertFrom-Json
           $deps = @($manifest.dependencies)
-          foreach ($dep in @("opus", "libvpx", "ffmpeg")) {
+          foreach ($dep in @("aom", "opus", "libvpx", "ffmpeg")) {
             $exists = $false
             foreach ($item in $deps) {
               if (($item -is [string] -and $item -eq $dep) -or ($item.name -eq $dep)) {
@@ -502,7 +502,7 @@ jobs:
           }
           @{
             "builtin-baseline" = $baseline
-            dependencies = @("opus", "libvpx", "ffmpeg")
+            dependencies = @("aom", "opus", "libvpx", "ffmpeg")
           } | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $depRoot "vcpkg.json") -Encoding utf8
           Push-Location $depRoot
           & $vcpkg install --triplet ${{ matrix.job.vcpkg-triplet }}
