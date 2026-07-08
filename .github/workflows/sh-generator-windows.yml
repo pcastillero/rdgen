@@ -247,6 +247,17 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ env.SCITER_RUST_VERSION }}
+
+      - name: Set up MSVC developer command prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Verify MSVC linker
+        shell: powershell
+        run: |
+          where.exe link
+          link.exe /? | Select-Object -First 3
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
