@@ -496,7 +496,12 @@ jobs:
           $depRoot = Join-Path $env:TEMP "rdgen-vcpkg-native-deps"
           Remove-Item -Path $depRoot -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path $depRoot | Out-Null
+          $baseline = $manifest.'builtin-baseline'
+          if (-not $baseline) {
+            $baseline = "${{ env.VCPKG_COMMIT_ID }}"
+          }
           @{
+            "builtin-baseline" = $baseline
             dependencies = @("opus", "libvpx", "ffmpeg")
           } | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $depRoot "vcpkg.json") -Encoding utf8
           Push-Location $depRoot
