@@ -77,7 +77,13 @@ jobs:
           command: |
             cd RustDeskTempTopMostWindow && git checkout 53b548a5398624f7149a382000397993542ad796
             if ($env:privacylink_url -ne "false") {
-              if ($env:privacy_png_base64) {
+              if ($env:privacy_png_file -and (Test-Path $env:privacy_png_file)) {
+                Copy-Item $env:privacy_png_file privacy.png
+                Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/privacyScreen.py -OutFile privacyScreen.py
+                python privacyScreen.py
+                rm ./WindowInjection/img.cpp
+                mv img.cpp ./WindowInjection/img.cpp
+              } elseif ($env:privacy_png_base64) {
                 $py = @(
                   'import base64, os',
                   'data = base64.b64decode(os.environ["privacy_png_base64"])',
