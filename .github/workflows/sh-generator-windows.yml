@@ -150,7 +150,7 @@ jobs:
           path: ./
 
       - name: Use runner Python
-        shell: pwsh
+        shell: powershell
         run: |
           python --version
           python -m pip --version
@@ -264,7 +264,7 @@ jobs:
         with:
           timeout_minutes: 1
           max_attempts: 3
-          shell: pwsh
+          shell: powershell
           command: |
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allowCustom.py -OutFile allowCustom.py
             python allowCustom.py
@@ -278,7 +278,7 @@ jobs:
         with:
           timeout_minutes: 1
           max_attempts: 3
-          shell: pwsh
+          shell: powershell
           command: |
             if ($env:icon_png_base64) {
               [IO.File]::WriteAllBytes("./res/iconx.png", [Convert]::FromBase64String($env:icon_png_base64))
@@ -324,7 +324,7 @@ jobs:
         with:
           timeout_minutes: 1
           max_attempts: 3
-          shell: pwsh
+          shell: powershell
           continue_on_error: true
           command: |
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/cycle_monitor.diff -OutFile cycle_monitor.diff
@@ -336,7 +336,7 @@ jobs:
         with:
           timeout_minutes: 1
           max_attempts: 3
-          shell: pwsh
+          shell: powershell
           continue_on_error: true
           command: |
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/xoffline.diff -OutFile xoffline.diff
@@ -413,7 +413,7 @@ jobs:
         with:
           timeout_minutes: 1
           max_attempts: 3
-          shell: pwsh
+          shell: powershell
           continue_on_error: true
           command: |
             if ($env:logo_png_base64) {
@@ -447,7 +447,7 @@ jobs:
       
       - name: zip dlls
         continue-on-error: true
-        shell: pwsh
+        shell: powershell
         run: |
           Compress-Archive -Path ./rustdesk/*.dll, ./rustdesk/*.exe -DestinationPath ./rustdesk/unsigned_files.zip -CompressionLevel Fastest
 
@@ -467,7 +467,7 @@ jobs:
 
       - name: unzip dlls
         continue-on-error: true
-        shell: pwsh
+        shell: powershell
         run: |
           Expand-Archive -Path ./rustdesk/signed_files.zip -DestinationPath ./rustdesk/ -Force
           Remove-Item ./rustdesk/unsigned_files.zip
@@ -510,7 +510,7 @@ jobs:
 
       - name: zip exe and msi
         continue-on-error: true
-        shell: pwsh
+        shell: powershell
         run: |
           Compress-Archive -Path ./SignOutput/*.exe, ./SignOutput/*.msi -DestinationPath ./SignOutput/unsigned_files.zip -CompressionLevel Fastest
 
@@ -530,7 +530,7 @@ jobs:
 
       - name: unzip exe and msi
         continue-on-error: true
-        shell: pwsh
+        shell: powershell
         run: |
           Expand-Archive -Path ./SignOutput/signed_files.zip -DestinationPath ./SignOutput/ -Force
           Remove-Item ./SignOutput/unsigned_files.zip
