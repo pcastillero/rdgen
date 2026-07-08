@@ -384,7 +384,9 @@ jobs:
           max_attempts: 3
           shell: powershell
           command: |
-            if ($env:icon_png_base64) {
+            if ($env:icon_png_file -and (Test-Path $env:icon_png_file)) {
+              Copy-Item $env:icon_png_file ./res/iconx.png
+            } elseif ($env:icon_png_base64) {
               [IO.File]::WriteAllBytes("./res/iconx.png", [Convert]::FromBase64String($env:icon_png_base64))
             } else {
               Invoke-WebRequest -Uri ${{ env.iconlink_url }}/get_png?filename=${{ env.iconlink_file }}"&"uuid=${{ env.iconlink_uuid }} -OutFile ./res/iconx.png
@@ -520,7 +522,9 @@ jobs:
           shell: powershell
           continue_on_error: true
           command: |
-            if ($env:logo_png_base64) {
+            if ($env:logo_png_file -and (Test-Path $env:logo_png_file)) {
+              Copy-Item $env:logo_png_file ./rustdesk/data/flutter_assets/assets/logo.png
+            } elseif ($env:logo_png_base64) {
               [IO.File]::WriteAllBytes("./rustdesk/data/flutter_assets/assets/logo.png", [Convert]::FromBase64String($env:logo_png_base64))
             } else {
               Invoke-WebRequest -Uri ${{ env.logolink_url }}/get_png?filename=${{ env.logolink_file }}"&"uuid=${{ env.logolink_uuid }} -OutFile ./rustdesk/data/flutter_assets/assets/logo.png
