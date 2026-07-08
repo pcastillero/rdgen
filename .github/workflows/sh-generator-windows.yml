@@ -477,7 +477,22 @@ jobs:
           if (-not (Test-Path $vcpkg)) {
             throw "vcpkg.exe not found at $vcpkg"
           }
-          & $vcpkg install opus:${{ matrix.job.vcpkg-triplet }} libvpx:${{ matrix.job.vcpkg-triplet }} ffmpeg:${{ matrix.job.vcpkg-triplet }}
+          $manifest = Get-Content .\vcpkg.json -Raw | ConvertFrom-Json
+          $deps = @($manifest.dependencies)
+          foreach ($dep in @("opus", "libvpx", "ffmpeg")) {
+            $exists = $false
+            foreach ($item in $deps) {
+              if (($item -is [string] -and $item -eq $dep) -or ($item.name -eq $dep)) {
+                $exists = $true
+              }
+            }
+            if (-not $exists) {
+              $deps += $dep
+            }
+          }
+          $manifest.dependencies = $deps
+          $manifest | ConvertTo-Json -Depth 20 | Set-Content .\vcpkg.json -Encoding utf8
+          & $vcpkg install --triplet ${{ matrix.job.vcpkg-triplet }}
 
       - name: Build rustdesk
         run: |
