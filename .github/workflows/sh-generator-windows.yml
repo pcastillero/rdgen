@@ -258,6 +258,18 @@ jobs:
         run: |
           where.exe link
           Write-Host "MSVC linker path verified"
+
+      - name: Ensure Flutter Windows project files
+        shell: powershell
+        run: |
+          if (-not (Test-Path .\flutter\windows)) {
+            Push-Location .\flutter
+            flutter create --platforms=windows .
+            Pop-Location
+          }
+          if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
+            throw "Flutter Windows runner files were not generated."
+          }
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
