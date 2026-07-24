@@ -537,6 +537,14 @@ jobs:
             throw "Missing Flutter Windows project files before build.py"
           }
           Get-ChildItem .\flutter\windows -Force
+          $buildPy = Get-Content .\build.py -Raw
+          $needle = "    os.chdir('flutter')`n    system2('flutter build windows --release')"
+          $replacement = "    os.chdir('flutter')`n    if not os.path.exists('windows'):`n        system2('flutter create --platforms=windows .')`n    system2('flutter build windows --release')"
+          if ($buildPy -notlike "*flutter create --platforms=windows*") {
+            $buildPy = $buildPy.Replace($needle, $replacement)
+            Set-Content .\build.py -Value $buildPy -Encoding utf8
+          }
+          Select-String -Path .\build.py -Pattern "flutter create --platforms=windows", "flutter build windows"
           python .\build.py --portable --flutter --skip-portable-pack
           mv ./flutter/build/windows/x64/runner/Release ./rustdesk
  
