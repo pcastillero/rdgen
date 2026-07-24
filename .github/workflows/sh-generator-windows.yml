@@ -527,6 +527,16 @@ jobs:
       - name: Build rustdesk
         run: |
           # Windows: build RustDesk
+          if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
+            Push-Location .\flutter
+            flutter create --platforms=windows .
+            Pop-Location
+          }
+          if (-not (Test-Path .\flutter\windows\CMakeLists.txt)) {
+            Get-ChildItem .\flutter -Force
+            throw "Missing Flutter Windows project files before build.py"
+          }
+          Get-ChildItem .\flutter\windows -Force
           python .\build.py --portable --flutter --skip-portable-pack
           mv ./flutter/build/windows/x64/runner/Release ./rustdesk
  
