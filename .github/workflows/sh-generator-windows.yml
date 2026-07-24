@@ -541,17 +541,17 @@ jobs:
           from pathlib import Path
           path = Path("build.py")
           text = path.read_text(encoding="utf-8")
-          if "flutter create --platforms=windows" not in text:
-              old = "    os.chdir('flutter')\n    system2('flutter build windows --release')"
-              new = "    os.chdir('flutter')\n    if not os.path.exists('windows'):\n        system2('flutter create --platforms=windows .')\n    system2('flutter build windows --release')"
-              if old not in text:
-                  raise SystemExit("Could not patch build.py: expected flutter build block not found")
+          old = "    os.chdir('flutter')\n    system2('flutter build windows --release')"
+          new = "    os.chdir('flutter')\n    system2('flutter create --platforms=windows .')\n    system2('flutter build windows --release')"
+          if old not in text and new not in text:
+              raise SystemExit("Could not patch build.py: expected flutter build block not found")
+          if new not in text:
               text = text.replace(old, new, 1)
               path.write_text(text, encoding="utf-8")
           patched = Path("build.py").read_text(encoding="utf-8")
-          if "flutter create --platforms=windows" not in patched:
+          if new not in patched:
               raise SystemExit("Could not patch build.py: verification failed")
-          print("build.py patched to create flutter/windows during build")
+          print("build.py patched to recreate flutter/windows during build")
           '@
           Select-String -Path .\build.py -Pattern "flutter create --platforms=windows", "flutter build windows"
           python .\build.py --portable --flutter --skip-portable-pack
