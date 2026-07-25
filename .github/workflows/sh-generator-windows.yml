@@ -264,7 +264,7 @@ jobs:
         run: |
           if (-not (Test-Path .\flutter\windows)) {
             Push-Location .\flutter
-            flutter create --platforms=windows .
+            flutter create --platforms=windows --project-name rustdesk .
             Pop-Location
           }
           if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
@@ -532,7 +532,7 @@ jobs:
             throw "cargo build did not produce target/release/librustdesk.dll"
           }
           Push-Location .\flutter
-          flutter create --platforms=windows .
+          flutter create --platforms=windows --project-name rustdesk .
           if (-not (Test-Path .\windows\CMakeLists.txt)) {
             Get-ChildItem . -Force
             throw "flutter create did not produce windows/CMakeLists.txt"
