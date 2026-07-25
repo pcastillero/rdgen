@@ -262,14 +262,13 @@ jobs:
       - name: Ensure Flutter Windows project files
         shell: powershell
         run: |
-          if (-not (Test-Path .\flutter\windows)) {
-            Push-Location .\flutter
-            flutter create --platforms=windows --project-name rustdesk .
-            Pop-Location
+          if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
+            git checkout -- .\flutter\windows
           }
           if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
-            throw "Flutter Windows runner files were not generated."
+            throw "Flutter Windows runner files are missing from the RustDesk checkout."
           }
+          Get-ChildItem .\flutter\windows -Force
       
       - name: change appname to custom
         if: env.appname != 'rustdesk'
@@ -531,12 +530,14 @@ jobs:
           if (-not (Test-Path .\target\release\librustdesk.dll)) {
             throw "cargo build did not produce target/release/librustdesk.dll"
           }
-          Push-Location .\flutter
-          flutter create --platforms=windows --project-name rustdesk .
-          if (-not (Test-Path .\windows\CMakeLists.txt)) {
-            Get-ChildItem . -Force
-            throw "flutter create did not produce windows/CMakeLists.txt"
+          if (-not (Test-Path .\flutter\windows\CMakeLists.txt)) {
+            git checkout -- .\flutter\windows
           }
+          if (-not (Test-Path .\flutter\windows\CMakeLists.txt)) {
+            Get-ChildItem .\flutter -Force
+            throw "flutter/windows/CMakeLists.txt is missing before flutter build"
+          }
+          Push-Location .\flutter
           flutter build windows --release
           Pop-Location
           $flutterRelease = ".\flutter\build\windows\x64\runner\Release"
