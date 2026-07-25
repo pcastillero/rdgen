@@ -526,36 +526,25 @@ jobs:
 
       - name: Build rustdesk
         run: |
-          # Windows: build RustDesk
-          if (-not (Test-Path .\flutter\windows\runner\Runner.rc)) {
-            Push-Location .\flutter
-            flutter create --platforms=windows .
-            Pop-Location
+          # Windows: build RustDesk without build.py so flutter/windows stays under our control.
+          cargo build --locked --features flutter --lib --release
+          if (-not (Test-Path .\target\release\librustdesk.dll)) {
+            throw "cargo build did not produce target/release/librustdesk.dll"
           }
-          if (-not (Test-Path .\flutter\windows\CMakeLists.txt)) {
-            Get-ChildItem .\flutter -Force
-            throw "Missing Flutter Windows project files before build.py"
+          Push-Location .\flutter
+          flutter create --platforms=windows .
+          if (-not (Test-Path .\windows\CMakeLists.txt)) {
+            Get-ChildItem . -Force
+            throw "flutter create did not produce windows/CMakeLists.txt"
           }
-          Get-ChildItem .\flutter\windows -Force
-          python -c @'
-          from pathlib import Path
-          path = Path("build.py")
-          text = path.read_text(encoding="utf-8")
-          old = "    os.chdir('flutter')\n    system2('flutter build windows --release')"
-          new = "    os.chdir('flutter')\n    system2('flutter create --platforms=windows .')\n    system2('flutter build windows --release')"
-          if old not in text and new not in text:
-              raise SystemExit("Could not patch build.py: expected flutter build block not found")
-          if new not in text:
-              text = text.replace(old, new, 1)
-              path.write_text(text, encoding="utf-8")
-          patched = Path("build.py").read_text(encoding="utf-8")
-          if new not in patched:
-              raise SystemExit("Could not patch build.py: verification failed")
-          print("build.py patched to recreate flutter/windows during build")
-          '@
-          Select-String -Path .\build.py -Pattern "flutter create --platforms=windows", "flutter build windows"
-          python .\build.py --portable --flutter --skip-portable-pack
-          mv ./flutter/build/windows/x64/runner/Release ./rustdesk
+          flutter build windows --release
+          Pop-Location
+          $flutterRelease = ".\flutter\build\windows\x64\runner\Release"
+          if (-not (Test-Path $flutterRelease)) {
+            throw "Flutter release folder was not generated: $flutterRelease"
+          }
+          Copy-Item .\target\release\deps\dylib_virtual_display.dll $flutterRelease -Force
+          mv $flutterRelease .\rustdesk
  
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
