@@ -541,10 +541,13 @@ jobs:
           }
           Write-Host "Flutter windows folder immediately before build:"
           Get-ChildItem .\flutter\windows -Force
+          flutter config --enable-windows-desktop
+          flutter doctor -v
           Push-Location .\flutter
           Get-Location
           Get-ChildItem .\windows -Force
-          flutter build windows --release
+          flutter pub get
+          flutter build windows --release -v
           Pop-Location
           $flutterRelease = ".\flutter\build\windows\x64\runner\Release"
           if (-not (Test-Path $flutterRelease)) {
