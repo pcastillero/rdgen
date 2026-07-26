@@ -553,7 +553,12 @@ jobs:
           if (-not (Test-Path $flutterRelease)) {
             throw "Flutter release folder was not generated: $flutterRelease"
           }
-          Copy-Item .\target\release\deps\dylib_virtual_display.dll $flutterRelease -Force
+          $virtualDisplayDll = Get-ChildItem -Path .\target\release -Filter "dylib_virtual_display.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($virtualDisplayDll) {
+            Copy-Item $virtualDisplayDll.FullName $flutterRelease -Force
+          } else {
+            Write-Host "dylib_virtual_display.dll was not produced by this build; continuing without it."
+          }
           mv $flutterRelease .\rustdesk
  
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
