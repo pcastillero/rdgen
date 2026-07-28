@@ -567,6 +567,13 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
+          MSVC_LINK_EXE="$(/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/Installer/vswhere.exe -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find 'VC/Tools/MSVC/*/bin/Hostx64/x64/link.exe' | head -n 1)"
+          if [ -z "$MSVC_LINK_EXE" ]; then
+            echo "MSVC link.exe was not found"
+            exit 1
+          fi
+          export CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER="$MSVC_LINK_EXE"
+          echo "Using MSVC linker: $MSVC_LINK_EXE"
           python3 ./generate.py -f ../../rustdesk/ -o . -e "../../rustdesk/${{ env.appname }}.exe"
           popd
           mkdir -p ./SignOutput
@@ -618,11 +625,13 @@ jobs:
           Remove-Item ./SignOutput/signed_files.zip
 
       - name: rename rustdesk.exe to filename.exe
+        shell: bash
         run: |
           mv ./SignOutput/rustdesk.exe "./SignOutput/${{ env.filename }}.exe" || echo "rustdesk"
 
       - name: rename rustdesk.msi to filename.msi
         continue-on-error: true
+        shell: bash
         run: |
           mv ./SignOutput/rustdesk.msi "./SignOutput/${{ env.filename }}.msi" || echo "rustdesk"
 
