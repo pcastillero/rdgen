@@ -397,22 +397,26 @@ jobs:
           shell: powershell
           command: |
             if ($env:icon_png_file -and (Test-Path $env:icon_png_file)) {
-              Copy-Item $env:icon_png_file ./res/iconx.png
+              Copy-Item $env:icon_png_file ./res/iconx.png -Force
             } elseif ($env:icon_png_base64) {
               [IO.File]::WriteAllBytes("./res/iconx.png", [Convert]::FromBase64String($env:icon_png_base64))
             } else {
               Invoke-WebRequest -Uri ${{ env.iconlink_url }}/get_png?filename=${{ env.iconlink_file }}"&"uuid=${{ env.iconlink_uuid }} -OutFile ./res/iconx.png
             }
-            mv ./res/icon.ico ./res/icon.ico.bak
-            mv ./res/icon.png ./res/icon.png.bak
-            mv ./res/tray-icon.ico ./res/tray-icon.ico.bak
-            mv ./res/iconx.png ./res/icon.png
-            mv ./res/32x32.png ./res/32x32.png.bak
-            mv ./res/64x64.png ./res/64x64.png.bak
-            mv ./res/128x128.png ./res/128x128.png.bak
-            mv ./res/128x128@2x.png ./res/128x128@2x.png.bak
+            if (-not (Test-Path ./res/iconx.png)) {
+              Write-Host "Custom icon was requested but no icon image was produced; keeping the default RustDesk icons."
+              exit 0
+            }
+            if (Test-Path ./res/icon.ico) { Move-Item ./res/icon.ico ./res/icon.ico.bak -Force }
+            if (Test-Path ./res/icon.png) { Move-Item ./res/icon.png ./res/icon.png.bak -Force }
+            if (Test-Path ./res/tray-icon.ico) { Move-Item ./res/tray-icon.ico ./res/tray-icon.ico.bak -Force }
+            Move-Item ./res/iconx.png ./res/icon.png -Force
+            if (Test-Path ./res/32x32.png) { Move-Item ./res/32x32.png ./res/32x32.png.bak -Force }
+            if (Test-Path ./res/64x64.png) { Move-Item ./res/64x64.png ./res/64x64.png.bak -Force }
+            if (Test-Path ./res/128x128.png) { Move-Item ./res/128x128.png ./res/128x128.png.bak -Force }
+            if (Test-Path ./res/128x128@2x.png) { Move-Item ./res/128x128@2x.png ./res/128x128@2x.png.bak -Force }
             magick ./res/icon.png -define icon:auto-resize=256,64,48,32,16 ./res/icon.ico
-            cp ./res/icon.ico ./res/tray-icon.ico
+            Copy-Item ./res/icon.ico ./res/tray-icon.ico -Force
             magick ./res/icon.png -resize 32x32 ./res/32x32.png
             magick ./res/icon.png -resize 64x64 ./res/64x64.png
             magick ./res/icon.png -resize 128x128 ./res/128x128.png
